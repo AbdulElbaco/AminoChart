@@ -1,4 +1,5 @@
-﻿using Data_Access;
+﻿using Business_Logic;
+using Data_Access;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Business_Logic
@@ -136,9 +137,10 @@ namespace Business_Logic
     public class clsFood
     {
         public string Name;
-        private float Similarity_Score;
-        private stAAProfile _AAs_Profile;
+        internal float Similarity_Score;
+        internal stAAProfile _AAs_Profile;
         public float Protein_Percentage;
+
 
         public clsFood(string Name)
         {
@@ -227,9 +229,74 @@ namespace Business_Logic
                 totalScore += partialScore;
             }
 
-            // Convert to percentage (weights already sum to 1.0)
-            Similarity_Score = Math.Clamp(totalScore * 100f, 0f, 100f);
+            this.Similarity_Score = totalScore;
+            return this.Similarity_Score;
+        }
+    }
+
+    public class clsMix
+    {
+        public clsFood[] FoodsList;
+        public Dictionary<string, float> Amounts;
+        public float Similarity_Score;
+        public clsMix(clsFood[] FoodsList, Dictionary<string, float> Amounts)
+        {
+            this.FoodsList = FoodsList;
+            this.Amounts = Amounts;
+            this.Similarity_Score = -1;
+        }
+
+        public float Get_Similarity_Score()
+        {
+            // Return cached score if already calculated
+            if (Similarity_Score != -1)
+            {
+                return Similarity_Score;
+            }
+
+            float Sum = 0f;
+
+            for(int i = 0; i < FoodsList.Length; i++)
+            {
+                Sum += FoodsList.ElementAt(i).Get_Similarity_Score() * Amounts[FoodsList.ElementAt(i).Name];
+            }
+
+            Similarity_Score = Sum;
+
             return Similarity_Score;
         }
     }
 }
+
+
+//float currenttotalScore = 0f;
+//float finaltotalScore = 0f;
+//stIdealProfile idealProfile = new stIdealProfile(); // Uses science-based defaults
+
+//// Calculate weighted similarity for each amino acid
+//for (int i = 0; i < FoodsList.Length; i++)
+//{
+//    foreach (var field in typeof(stAAProfile).GetFields())
+//    {
+//        string aaName = field.Name;
+
+//        // Get the amino acid values from both profiles
+//        stAA foodAA = (stAA)field.GetValue(FoodsList[i]._AAs_Profile);
+//        float idealValue = (float)typeof(stIdealProfile).GetField(aaName).GetValue(idealProfile);
+
+//        // Skip if this AA has no weight (non-essentials)
+//        if (!Calculations_Config.Weights.TryGetValue(aaName, out float weight) || weight <= 0)
+//        {
+//            continue;
+//        }
+
+//        // Calculate contribution to score (penalizing deviations from ideal)
+//        float deviation = Math.Abs(idealValue - foodAA.Percentage_AA2TAAs) / idealValue;
+//        float partialScore = weight * (1 - deviation);
+//        currenttotalScore += partialScore;
+//    }
+//    finaltotalScore += currenttotalScore * Amounts[FoodsList[i].Name];
+//}
+
+//// Convert to percentage (weights already sum to 1.0)
+//Similarity_Score = Math.Clamp(finaltotalScore * 100f, 0f, 100f);
