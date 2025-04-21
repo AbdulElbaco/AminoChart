@@ -101,7 +101,6 @@ namespace Business_Logic
                 Selenocysteine = 0.1f;
         }
     }
-
     public class Calculations_Config
     {
         static public IReadOnlyDictionary<string, float> Weights = new Dictionary<string, float>
@@ -258,6 +257,7 @@ namespace Business_Logic
 
             for(int i = 0; i < FoodsList.Length; i++)
             {
+                // Key not found expetion
                 Sum += FoodsList.ElementAt(i).Get_Similarity_Score() * Amounts[FoodsList.ElementAt(i).Name];
             }
 
